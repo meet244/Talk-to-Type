@@ -1,7 +1,7 @@
 # **Talk-To-Type (Windows Voice Typing Automation)**
 
 A tiny background tool that lets you **talk anywhere and it automatically types for you**.
-Just move your mouse to the **top-left corner**, speak, move away—your words get instantly typed.
+Just move your mouse to the **top-left corner**, speak, move away your words get instantly typed.
 Powered by **Groq Whisper** for fast, accurate transcription.
 
 ---
