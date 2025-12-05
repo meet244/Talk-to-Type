@@ -23,15 +23,37 @@ except ImportError as e:
 class TalkToType:
     """Main class for the Talk-to-Type application."""
 
-    def __init__(self):
-        """Initialize the speech recognizer and keyboard controller."""
+    # Default configuration values
+    DEFAULT_LISTEN_TIMEOUT = 5  # seconds to wait for speech
+    DEFAULT_PHRASE_TIME_LIMIT = 10  # max seconds for a phrase
+    DEFAULT_ENERGY_THRESHOLD = 300
+
+    def __init__(
+        self,
+        listen_timeout=None,
+        phrase_time_limit=None,
+        energy_threshold=None,
+    ):
+        """Initialize the speech recognizer and keyboard controller.
+
+        Args:
+            listen_timeout: Seconds to wait for speech before timeout (default: 5).
+            phrase_time_limit: Max seconds for a single phrase (default: 10).
+            energy_threshold: Microphone sensitivity threshold (default: 300).
+        """
         self.recognizer = sr.Recognizer()
         self.keyboard = Controller()
         self.is_running = False
         self.listen_thread = None
 
+        # Configuration
+        self.listen_timeout = listen_timeout or self.DEFAULT_LISTEN_TIMEOUT
+        self.phrase_time_limit = phrase_time_limit or self.DEFAULT_PHRASE_TIME_LIMIT
+
         # Adjust for ambient noise sensitivity
-        self.recognizer.energy_threshold = 300
+        self.recognizer.energy_threshold = (
+            energy_threshold or self.DEFAULT_ENERGY_THRESHOLD
+        )
         self.recognizer.dynamic_energy_threshold = True
 
     def type_text(self, text):
@@ -42,8 +64,10 @@ class TalkToType:
         """
         if text:
             self.keyboard.type(text)
-            # Add a space after each phrase for natural typing
-            self.keyboard.type(" ")
+            # Add a space after each phrase for natural typing,
+            # but only if the text doesn't already end with whitespace
+            if not text.endswith((" ", "\t", "\n")):
+                self.keyboard.type(" ")
 
     def listen_and_type(self):
         """Continuously listen for speech and type recognized text."""
@@ -55,9 +79,11 @@ class TalkToType:
 
             while self.is_running:
                 try:
-                    # Listen for audio with a timeout
+                    # Listen for audio with configurable timeout
                     audio = self.recognizer.listen(
-                        source, timeout=5, phrase_time_limit=10
+                        source,
+                        timeout=self.listen_timeout,
+                        phrase_time_limit=self.phrase_time_limit,
                     )
 
                     # Recognize speech using Google Speech Recognition

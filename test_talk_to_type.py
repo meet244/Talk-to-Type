@@ -75,6 +75,47 @@ class TestTalkToType(unittest.TestCase):
         # With empty string, type should not be called
         self.mock_keyboard.type.assert_not_called()
 
+    def test_type_text_no_extra_space_if_whitespace(self):
+        """Test that no extra space is added if text ends with whitespace."""
+        import talk_to_type
+
+        ttt = talk_to_type.TalkToType()
+        self.mock_keyboard.type.reset_mock()
+
+        # Test with text ending in space
+        ttt.type_text("hello world ")
+        # Should only call type once with the text, not add extra space
+        self.mock_keyboard.type.assert_called_once_with("hello world ")
+
+    def test_type_text_adds_space_for_normal_text(self):
+        """Test that space is added after normal text."""
+        import talk_to_type
+
+        ttt = talk_to_type.TalkToType()
+        self.mock_keyboard.type.reset_mock()
+
+        # Test with normal text
+        ttt.type_text("hello world")
+        # Should call type twice: once for text, once for space
+        calls = self.mock_keyboard.type.call_args_list
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[0][0][0], "hello world")
+        self.assertEqual(calls[1][0][0], " ")
+
+    def test_configurable_timeouts(self):
+        """Test that timeout values are configurable."""
+        import talk_to_type
+
+        ttt = talk_to_type.TalkToType(
+            listen_timeout=10,
+            phrase_time_limit=30,
+            energy_threshold=500,
+        )
+
+        self.assertEqual(ttt.listen_timeout, 10)
+        self.assertEqual(ttt.phrase_time_limit, 30)
+        self.assertEqual(ttt.recognizer.energy_threshold, 500)
+
     def test_start_stop(self):
         """Test start and stop methods."""
         import talk_to_type
